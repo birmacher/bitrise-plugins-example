@@ -1,0 +1,27 @@
+format_version: 1.0.0
+default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
+
+app:
+  envs:
+  - PLUGIN_NAME: example
+
+workflows:
+  test:
+    steps:
+    - script:
+        title: Install plugin
+        inputs:
+        - content: |
+            #!/bin/bash
+            set -e
+
+            bitrise plugin install \
+              --source "file://."
+    - script:
+        title: Plugin test
+        inputs:
+        - content: |
+            #!/bin/bash
+            set -e
+
+            bitrise :$PLUGIN_NAME --loglevel debug -v
