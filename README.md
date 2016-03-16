@@ -1,48 +1,131 @@
-# plugins-example
+# Bitrise CLI example plugin #1
 
-# Bitrise CLI Hello World Plugin
+** Bitrise CLI Example Plugin, which demonstrates how bitrise plugin works. **
 
-**Bitrise CLI Example Plugin.**
-
-Prints Hello World!.
+** This plugin is an example for `Source Plugins`**
 
 ## How to use this Plugin
 
 Can be run directly with the [bitrise CLI](https://github.com/bitrise-io/bitrise), requires version 1.3.0 or newer.
 
 First install the plugin:
-`bitrise plugin install --source https://github.com/bitrise-tools/bitrise-plugin-hello-world/releases/download/0.9.1/bitrise-plugin-hello-world-$(uname -s)-$(uname -m) --name hello`
+
+```
+bitrise plugin install --source https://github.com/godrei/plugins-example.git
+```
 
 After that, you can use it:
-`bitrise :hello`
+
+```
+bitrise :example
+```
 
 ## Guidelines for Plugin Development
 
+### Plugin types:
+
+* By trigger:
+
+	* **Command Plugins**
+
+  		*Plugins which can run by direct calling `bitrise :my-command-plugin`.*
+
+	* **Trigger Plugins**
+
+  		*Plugins which are triggered automatically by specific bitrise events.*
+
+* By executable:
+
+	* **Source Plugins**
+
+  		*This type of plugins have a `bitrise-plugin.sh` shell script file in project root and this file will be executed during the plugin's run.*
+
+  	* **Binary plugins**
+
+  		*This type of plugins should have `executable` field in bitrise-plugin.yml, the given binary will be executed.*
+
+
+
+### Plugin project structure
+
+* **.git/ **
+
+  *[required] All plugin should be a git repository.*
+
+* **bitrise-plugin.sh**
+
+  *[required for `Source Plugins` ] The entry point for plugins which runs from source (this shell script file will be executed, by running the plugin).*
+
+* **bitrise-plugin.yml**
+
+  *[required] Contains informations about the plugin.*
+
+```
+name: my-plugin					#required field
+description: |- 				#optional field
+  My plugin's description.
+  Can be multiline too.
+trigger: Trigger event name		#optional field
+executable:						#optional field
+  osx: https://github.com/my/plugin/executable/for/osx
+  linux: https://github.com/my/plugin/executable/for/linux
+requirements:					#optional field
+- tool: envman
+  min_version: "1.0.0"
+  max_version: ""
+- tool: stepman
+  min_version: "1.0.0"
+  max_version: ""
+- tool: bitrise
+  min_version: 1.3.0
+  max_version: ""
+```
+
+### Available trigger events:
+
+* **DidFinishRun**
+
+  *BITRISE_PLUGIN_INPUT_TRIGGER=DidFinishRun*
+
+  *BITRISE_PLUGIN_INPUT_PAYLOAD=Contains bitrise run results*
+
 ### Plugin inputs
 
-* Plugin becomes informations from bitrise through `BITRISE_PLUGINS_MESSAGE` environment as JSON string.
+Plugin becomes informations from bitrise cli through environment variables.
 
-   *Currently bitrise informations contains bitrise version, in format:* `{"version":"CURRENT_BITRISE_VERSION"}`
+Following environmnets will be passed to the plugin:
 
-* Also command line arguments passed to the plugin, which can be used to control Plugin behavior.
+* **BITRISE_PLUGIN_INPUT_BITRISE_VERSION**
 
-   *Example: this plugin respons to:* `bitrise :hello requirements`
+  *Contains the runner bitrise cli's version.*
+
+* **BITRISE_PLUGIN_INPUT_PLUGIN_MODE**
+
+  *Contains the plugin mode. [options: event, command]*
+
+* **BITRISE_PLUGIN_INPUT_DATA_DIR**
+
+  *Plugin can store data (like config file) in this directory*.
+
+* **BITRISE_PLUGIN_INPUT_TRIGGER**
+
+  *Available for `Trigger Plugins` only. Contains the event name which triggered the plugin. [options: DidFinishRun]*
+
+* **BITRISE_PLUGIN_INPUT_PAYLOAD**
+
+   *Available for `Trigger Plugins` only. This environment contains `event` specific data.*
 
 ### Plugin outputs
 
-* Plugin should send informations to bitrise through os.Stdout as JSON string.
-
-   *Example: send requirements to bitrise:* `[{"ToolName":"bitrise","MinVersion":"1.3.0","MaxVersion":"1.3.0"}]`
-
-* Plugin outputs and errors should printed to the STDERR
+Plugin should send informations to bitrise through `BITRISE_PLUGIN_OUTPUT` environment variables.
 
 ### Plugin requirements
 
-Through plugin install bitrise ask plugin for requirements (i.e.: calls 'bitrise :my_plugin requirements') and waits for answer in following JSON format:
+Plugin can require bitrise tools. Every tool requirements can specify `min_version` and `max_version`.
 
-`[{"ToolName":"TOOL_NAME_1","MinVersion":"SEMANTIC_MIN_VERSION_1","MaxVersion":"SEMANTIC_MAX_VERSION_1"}, {"ToolName":"TOOL_NAME_2","MinVersion":"SEMANTIC_MIN_VERSION_2","MaxVersion":"SEMANTIC_MAX_VERSION_2"}, ...]`.
+This requirements will be checked througth the plugin install.
 
-Currently supporting tool requirements (ToolName):
+Currently supporting tool requirements:
 
 * **bitrise**
 * **stepman**
@@ -52,9 +135,3 @@ Notes:
 
 * Any missing tool (in plugin requirement list) will be skipped in check (i.e.: no requirements for this tool).
 * Any empty version (in plugin requirement list) will be skipped in check (i.e.: no requirements for this type of version).
-
-Example:
-
-If your plugin requires only bitrise with minimum version "1.0.0", your plugin requirement list looks like:
-
-`[{"ToolName":"bitrise","MinVersion":"1.0.0","MaxVersion":""}]`.
