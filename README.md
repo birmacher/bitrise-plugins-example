@@ -1,4 +1,4 @@
-# Bitrise CLI example plugin #1
+# Bitrise CLI example plugin
 
 **Bitrise CLI Example Plugin, which demonstrates how bitrise plugin works.**
 
@@ -11,7 +11,7 @@ Can be run directly with the [bitrise CLI](https://github.com/bitrise-io/bitrise
 First install the plugin:
 
 ```
-bitrise plugin install --source https://github.com/godrei/plugins-example.git
+bitrise plugin install --source https://github.com/bitrise-core/bitrise-plugins-example.git
 ```
 
 After that, you can use it:
